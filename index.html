@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>CatTinder 🐱 - Encuentra tu gato ideal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(145deg, #e8f0e8 0%, #f5f7f5 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0;
+            margin: 0;
+        }
+
+        /* Contenedor principal de la app (cards centradas) */
+        .app {
+            max-width: 450px;
+            width: 100%;
+            height: 100vh;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 0 40px rgba(0,0,0,0.12);
+            overflow: hidden;
+            border-radius: 28px 28px 0 0;
+        }
+
+        /* HEADER - ahora sin iconos extras, solo logo */
+        .global-header {
+            width: 100%;
+            background: rgba(255,255,255,0.96);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid rgba(76, 175, 80, 0.15);
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 30;
+        }
+
+        .header {
+            max-width: 450px;
+            margin: 0 auto;
+            padding: 14px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: transparent;
+        }
+
+        .logo {
+            font-size: 1.6rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #2e7d32, #4caf50);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.3px;
+        }
+
+        .logo i {
+            background: none;
+            -webkit-background-clip: unset;
+            background-clip: unset;
+            color: #4caf50;
+            margin-right: 6px;
+            font-size: 1.5rem;
+        }
+
+        /* Área de cards con scroll vertical */
+        .cards-container {
+            flex: 1;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+            margin-top: 68px;
+            margin-bottom: 68px;
+        }
+
+        .cards-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Cada card ocupa toda la pantalla */
+        .card {
+            scroll-snap-align: start;
+            scroll-snap-stop: always;
+            min-height: 100vh;
+            height: auto;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            position: relative;
+            border-bottom: 1px solid #eff3ef;
+        }
+
+        .card-img {
+            width: 100%;
+            height: 55vh;
+            object-fit: cover;
+            background: #d4e2d4;
+        }
+
+        .card-info {
+            padding: 18px 22px 10px;
+        }
+
+        .card-name {
+            font-size: 1.7rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .card-bio {
+            color: #5a6e5a;
+            margin-top: 8px;
+            line-height: 1.45;
+            font-size: 0.95rem;
+        }
+
+        .liked-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #ff4757;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .match-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #ff4757, #ff8c9e);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        /* Botones interacción lateral */
+        .interaction-sidebar {
+            position: absolute;
+            right: 16px;
+            bottom: 120px;
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+            z-index: 8;
+        }
+
+        .interaction-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            background: rgba(255,255,255,0.92);
+            backdrop-filter: blur(8px);
+            border: none;
+            border-radius: 48px;
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+            color: #2c3e2c;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+        }
+
+        .interaction-btn:active {
+            transform: scale(0.94);
+        }
+
+        .interaction-icon {
+            font-size: 1.9rem;
+        }
+
+        .interaction-count {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #3a5a3a;
+        }
+
+        .like-btn.liked .interaction-icon {
+            color: #ff4757;
+            animation: heartPop 0.35s ease-out;
+        }
+
+        @keyframes heartPop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.25); }
+            100% { transform: scale(1); }
+        }
+
+        /* Comentarios */
+        .comments-section {
+            background: #fbfefb;
+            border-radius: 28px;
+            margin: 12px 18px 20px;
+            padding: 14px 16px;
+            border: 1px solid #e2f0e2;
+        }
+
+        .comments-title {
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #2e5e2e;
+            font-size: 0.9rem;
+        }
+
+        .comment-list {
+            max-height: 130px;
+            overflow-y: auto;
+            margin-bottom: 12px;
+        }
+
+        .comment-item {
+            background: white;
+            padding: 8px 14px;
+            border-radius: 28px;
+            margin-bottom: 8px;
+            font-size: 0.8rem;
+            border: 1px solid #e9f3e9;
+        }
+
+        .comment-author {
+            font-weight: bold;
+            color: #2e7d32;
+        }
+
+        .comment-input-area {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .comment-input {
+            flex: 1;
+            border: 1px solid #d0e0d0;
+            border-radius: 40px;
+            padding: 10px 16px;
+            font-size: 0.8rem;
+            outline: none;
+        }
+
+        .comment-input:focus {
+            border-color: #4caf50;
+            box-shadow: 0 0 0 2px rgba(76,175,80,0.2);
+        }
+
+        .comment-submit {
+            background: #4caf50;
+            border: none;
+            border-radius: 40px;
+            padding: 0 20px;
+            color: white;
+            cursor: pointer;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 28px;
+            padding: 12px 20px 24px;
+        }
+
+        .action-btn {
+            padding: 10px 28px;
+            border: none;
+            border-radius: 60px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+
+        .action-btn:active {
+            transform: scale(0.96);
+        }
+
+        .btn-dislike {
+            background: #f2f4f2;
+            color: #4a5b4a;
+        }
+
+        .btn-match {
+            background: #4caf50;
+            color: white;
+        }
+
+        /* FOOTER */
+        .global-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(255,255,255,0.96);
+            backdrop-filter: blur(8px);
+            border-top: 1px solid rgba(76, 175, 80, 0.15);
+            z-index: 30;
+        }
+
+        .bottom-nav {
+            max-width: 450px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 20px 14px;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            background: none;
+            border: none;
+            color: #8a9a8a;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: color 0.2s;
+            font-weight: 500;
+        }
+
+        .nav-item.active {
+            color: #4caf50;
+        }
+
+        .nav-item i {
+            font-size: 1.4rem;
+        }
+
+        /* ========== PERFIL REDISEÑADO ========== */
+        .screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #f8faf8;
+            z-index: 40;
+            transform: translateX(100%);
+            transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            overflow-y: auto;
+        }
+
+        .screen.open {
+            transform: translateX(0);
+        }
+
+        .profile-header {
+            background: linear-gradient(145deg, #3c8c40, #1f5a23);
+            padding: 70px 24px 50px;
+            text-align: center;
+            color: white;
+            border-radius: 0 0 36px 36px;
+            position: relative;
+        }
+
+        .profile-avatar {
+            width: 110px;
+            height: 110px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            box-shadow: 0 12px 24px rgba(0,0,0,0.2);
+            border: 4px solid rgba(255,255,255,0.5);
+        }
+
+        .profile-avatar i {
+            font-size: 3.6rem;
+            color: #4caf50;
+        }
+
+        .profile-header h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            margin-bottom: 8px;
+        }
+
+        .profile-badge {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(4px);
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .stats-cards {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin-top: 24px;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.12);
+            backdrop-filter: blur(4px);
+            border-radius: 28px;
+            padding: 10px 20px;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.7rem;
+            font-weight: 800;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            opacity: 0.85;
+            letter-spacing: 0.5px;
+        }
+
+        .profile-content-card {
+            background: white;
+            margin: -20px 18px 20px;
+            border-radius: 32px;
+            padding: 24px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+        }
+
+        .info-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 0;
+            border-bottom: 1px solid #edf2ed;
+        }
+
+        .info-row i {
+            width: 28px;
+            color: #4caf50;
+            font-size: 1.2rem;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin: 24px 0 16px 0;
+            color: #1f3b1f;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .matches-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 14px;
+            margin-top: 8px;
+        }
+
+        .match-card {
+            background: #f0f7ef;
+            border-radius: 24px;
+            padding: 16px 8px;
+            text-align: center;
+            transition: all 0.2s;
+            border: 1px solid #e2f0e0;
+        }
+
+        .match-card i {
+            font-size: 2rem;
+            color: #4caf50;
+            margin-bottom: 8px;
+        }
+
+        .edit-btn {
+            position: fixed;
+            bottom: 90px;
+            right: 24px;
+            background: #4caf50;
+            color: white;
+            border: none;
+            width: 56px;
+            height: 56px;
+            border-radius: 56px;
+            font-size: 1.3rem;
+            cursor: pointer;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+            z-index: 45;
+            transition: transform 0.1s;
+        }
+
+        /* ========== EXPLORAR INFINITO Y VER MÁS ========== */
+        .explore-container {
+            background: #f8faf8;
+            min-height: 100vh;
+        }
+
+        .explore-header {
+            background: linear-gradient(145deg, #3c8c40, #1f5a23);
+            padding: 70px 20px 40px;
+            text-align: center;
+            color: white;
+        }
+
+        .explore-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            padding: 20px 16px 30px;
+        }
+
+        .explore-item {
+            aspect-ratio: 1;
+            overflow: hidden;
+            border-radius: 24px;
+            background: #eef3ee;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            transition: transform 0.25s ease, box-shadow 0.2s;
+            cursor: pointer;
+        }
+
+        .explore-item:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .explore-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+
+        .explore-item:hover img {
+            transform: scale(1.05);
+        }
+
+        .load-more-trigger {
+            text-align: center;
+            padding: 20px 16px 40px;
+            color: #4caf50;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 0.85rem;
+            letter-spacing: 0.3px;
+            background: transparent;
+            border: none;
+            width: 100%;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .load-more-trigger i {
+            font-size: 1rem;
+            transition: transform 0.2s;
+        }
+
+        .load-more-trigger:hover i {
+            transform: translateX(4px);
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 24px;
+            left: 18px;
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(8px);
+            border: none;
+            font-size: 1.3rem;
+            cursor: pointer;
+            z-index: 46;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #9eae9e;
+            padding: 40px;
+        }
+
+        /* Modal de perfil de gato (NUEVO) */
+        .modal-perfil {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(8px);
+        }
+
+        .modal-perfil-content {
+            background: white;
+            border-radius: 32px;
+            width: 90%;
+            max-width: 380px;
+            max-height: 85vh;
+            overflow-y: auto;
+            animation: aparecer 0.25s ease;
+        }
+
+        @keyframes aparecer {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .modal-perfil-header {
+            background: linear-gradient(135deg, #2e7d32, #4caf50);
+            padding: 24px 20px;
+            text-align: center;
+            color: white;
+            position: relative;
+        }
+
+        .modal-perfil-header img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid white;
+            margin-bottom: 12px;
+        }
+
+        .modal-perfil-header h3 {
+            font-size: 1.6rem;
+            margin-bottom: 6px;
+        }
+
+        .cerrar-modal-perfil {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: rgba(0,0,0,0.3);
+            border: none;
+            color: white;
+            font-size: 1.3rem;
+            width: 36px;
+            height: 36px;
+            border-radius: 36px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-perfil-body {
+            padding: 20px;
+        }
+
+        .perfil-info-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid #edf2ed;
+        }
+
+        .perfil-info-row i {
+            width: 28px;
+            color: #4caf50;
+            font-size: 1.1rem;
+        }
+
+        .perfil-badge {
+            background: #f0f7ef;
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 0.75rem;
+            color: #2e7d32;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.75);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 32px;
+            width: 85%;
+            max-width: 360px;
+            padding: 24px;
+        }
+
+        .modal-content input, .modal-content textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 12px 0;
+            border: 1px solid #ddd;
+            border-radius: 28px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .modal-buttons button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="global-header">
+        <div class="header">
+            <div class="logo"><i class="fas fa-paw"></i> CatTinder</div>
+        </div>
+    </div>
+
+    <div class="app">
+        <div class="cards-container" id="cardsContainer">
+            <div id="catsWrapper"></div>
+        </div>
+    </div>
+
+    <div class="global-footer">
+        <div class="bottom-nav">
+            <button class="nav-item active" data-screen="home"><i class="fas fa-home"></i><span>Inicio</span></button>
+            <button class="nav-item" data-screen="explore"><i class="fas fa-compass"></i><span>Explorar</span></button>
+            <button class="nav-item" data-screen="profile"><i class="fas fa-user"></i><span>Perfil</span></button>
+        </div>
+    </div>
+
+    <!-- Pantalla Perfil Mejorada -->
+    <div id="profileScreen" class="screen">
+        <button class="back-btn" onclick="closeScreen('profileScreen')"><i class="fas fa-arrow-left"></i></button>
+        <div class="profile-header">
+            <div class="profile-avatar"><i class="fas fa-cat"></i></div>
+            <h2 id="profileName">CatLover</h2>
+            <div class="profile-badge"><i class="fas fa-map-marker-alt"></i> Ciudad Felina</div>
+            <div class="stats-cards">
+                <div class="stat-card"><div class="stat-number" id="profileLikes">0</div><div class="stat-label">Likes dados</div></div>
+                <div class="stat-card"><div class="stat-number" id="profileMatches">0</div><div class="stat-label">Matches</div></div>
+            </div>
+        </div>
+        <div class="profile-content-card">
+            <div class="info-row"><i class="fas fa-info-circle"></i> <span id="profileBioText"></span></div>
+            <div class="info-row"><i class="fas fa-envelope"></i> <span id="profileEmailText"></span></div>
+            <div class="section-title"><i class="fas fa-heart" style="color:#ff6b6b;"></i> Mis amistades felinas</div>
+            <div id="matchesList" class="matches-grid"></div>
+        </div>
+        <button class="edit-btn" id="editProfileBtn"><i class="fas fa-pen"></i></button>
+    </div>
+
+    <!-- Pantalla Explorar con scroll infinito minimalista -->
+    <div id="exploreScreen" class="screen">
+        <button class="back-btn" onclick="closeScreen('exploreScreen')"><i class="fas fa-arrow-left"></i></button>
+        <div class="explore-header">
+            <h2><i class="fas fa-compass"></i> Explorar</h2>
+            <p style="opacity:0.8; margin-top:6px;">Descubre nuevos amigos</p>
+        </div>
+        <div class="explore-grid" id="exploreGrid"></div>
+        <div id="loadMoreBtn" class="load-more-trigger">
+            <span>Ver más fotos</span> <i class="fas fa-chevron-right"></i>
+        </div>
+    </div>
+
+    <!-- NUEVO: Modal de perfil de gato (aparece al hacer clic en imagen de explorar) -->
+    <div id="modalPerfilGato" class="modal-perfil">
+        <div class="modal-perfil-content">
+            <div class="modal-perfil-header">
+                <button class="cerrar-modal-perfil" onclick="cerrarModalPerfil()"><i class="fas fa-times"></i></button>
+                <img id="modalPerfilImg" src="" alt="gato">
+                <h3 id="modalPerfilNombre">Nombre</h3>
+                <span class="perfil-badge" id="modalPerfilRaza">🐱 Raza</span>
+            </div>
+            <div class="modal-perfil-body">
+                <div class="perfil-info-row">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span><strong>Edad:</strong> <span id="modalPerfilEdad">-</span></span>
+                </div>
+                <div class="perfil-info-row">
+                    <i class="fas fa-heart"></i>
+                    <span><strong>Personalidad:</strong> <span id="modalPerfilPersonalidad">-</span></span>
+                </div>
+                <div class="perfil-info-row">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span><strong>Ubicación:</strong> <span id="modalPerfilUbicacion">-</span></span>
+                </div>
+                <div class="perfil-info-row">
+                    <i class="fas fa-paw"></i>
+                    <span><strong>Le gusta:</strong> <span id="modalPerfilGustos">-</span></span>
+                </div>
+                <div class="perfil-info-row">
+                    <i class="fas fa-info-circle"></i>
+                    <span><strong>Bio:</strong> <span id="modalPerfilBio">-</span></span>
+                </div>
+                <div class="perfil-info-row">
+                    <i class="fas fa-heart" style="color:#ff6b6b;"></i>
+                    <span><strong>❤️ Likes recibidos:</strong> <span id="modalPerfilLikes">0</span></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal editar perfil -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h3><i class="fas fa-user-edit"></i> Editar Perfil</h3>
+            <input type="text" id="editName" placeholder="Nombre">
+            <textarea id="editBio" rows="3" placeholder="Biografía"></textarea>
+            <input type="email" id="editEmail" placeholder="Email">
+            <div class="modal-buttons">
+                <button id="saveEditBtn" style="background:#4caf50; color:white;">Guardar</button>
+                <button id="cancelEditBtn" style="background:#e0e7e0;">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DATOS PRINCIPALES
+        let cats = [];
+        let userProfile = {
+            username: "CatLover",
+            bio: "Amante de los gatos 🐱 | Buscando amigos felinos",
+            email: "catlover@email.com",
+            totalLikes: 0,
+            matches: []
+        };
+        let commentsByCat = {};
+
+        const catNames = ["Milo", "Luna", "Simba", "Olivia", "Bigotes", "Nala", "Garfield", "Cookie", "Pelusa", "Tom", "Michi", "Canela", "Salem", "Mia", "Zeus"];
+        const catBios = ["❤️ Amo los mimos", "🐟 Fanático del atún", "🌿 Explorador aventurero", "😺 Travieso y juguetón", "💤 Dormilón profesional", "🎾 Amante del juego", "🌞 Busca aventuras", "📦 Adoro las cajas"];
+        const catImages = [
+            "https://images.pexels.com/photos/45201/kitty-cat-kitten-pet-45201.jpeg",
+            "https://images.pexels.com/photos/127028/pexels-photo-127028.jpeg",
+            "https://images.pexels.com/photos/208984/pexels-photo-208984.jpeg",
+            "https://images.pexels.com/photos/617278/pexels-photo-617278.jpeg",
+            "https://images.pexels.com/photos/257532/pexels-photo-257532.jpeg",
+            "https://images.pexels.com/photos/45170/kittens-cat-cat-puppy-rush-45170.jpeg",
+            "https://images.pexels.com/photos/1741205/pexels-photo-1741205.jpeg",
+            "https://images.pexels.com/photos/126407/pexels-photo-126407.jpeg"
+        ];
+        
+        // Datos simulados para los perfiles (sin backend)
+        const razas = ["Siamés", "Persa", "Maine Coon", "Bengalí", "Europeo", "Sphynx", "Angora", "Ragdoll"];
+        const personalidades = ["Cariñoso y mimoso", "Juguetón y curioso", "Tranquilo y relajado", "Independiente pero leal", "Energético y divertido", "Gruñón adorable", "Sociable y extrovertido"];
+        const ubicaciones = ["Barcelona", "Madrid", "Valencia", "Sevilla", "Bilbao", "Málaga", "Zaragoza", "Alicante"];
+        const gustos = ["Atún y siestas", "Jugar con pelotas", "Rascadores y cajas", "Salir al balcón", "Mimos y caricias", "Agua (¡sí, agua!)", "Pescado fresco", "Explorar lugares nuevos"];
+
+        function getRandomCatDetails() {
+            return {
+                raza: razas[Math.floor(Math.random() * razas.length)],
+                personalidad: personalidades[Math.floor(Math.random() * personalidades.length)],
+                ubicacion: ubicaciones[Math.floor(Math.random() * ubicaciones.length)],
+                gustos: gustos[Math.floor(Math.random() * gustos.length)],
+                edad: Math.floor(Math.random() * 12) + 1
+            };
+        }
+
+        function generateCats(count) {
+            const newCats = [];
+            for (let i = 0; i < count; i++) {
+                const detalles = getRandomCatDetails();
+                newCats.push({
+                    id: Date.now() + i + Math.random(),
+                    name: catNames[Math.floor(Math.random() * catNames.length)],
+                    bio: catBios[Math.floor(Math.random() * catBios.length)],
+                    image: catImages[Math.floor(Math.random() * catImages.length)],
+                    likes: Math.floor(Math.random() * 2000) + 100,
+                    liked: false,
+                    matched: false,
+                    // Datos de perfil adicionales
+                    raza: detalles.raza,
+                    personalidad: detalles.personalidad,
+                    ubicacion: detalles.ubicacion,
+                    gustos: detalles.gustos,
+                    edad: detalles.edad
+                });
+            }
+            return newCats;
+        }
+
+        function loadData() {
+            const saved = localStorage.getItem("cattinder_final_v2");
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    userProfile = data.userProfile || userProfile;
+                    cats = data.cats || [];
+                    commentsByCat = data.commentsByCat || {};
+                    if (cats.length === 0) cats = generateCats(10);
+                    // Asegurar que los gatos viejos tengan los nuevos campos
+                    cats.forEach(cat => {
+                        if (!cat.raza) {
+                            const detalles = getRandomCatDetails();
+                            cat.raza = detalles.raza;
+                            cat.personalidad = detalles.personalidad;
+                            cat.ubicacion = detalles.ubicacion;
+                            cat.gustos = detalles.gustos;
+                            cat.edad = detalles.edad;
+                        }
+                    });
+                } catch(e) {}
+            } else {
+                cats = generateCats(10);
+            }
+            userProfile.totalLikes = cats.filter(c => c.liked).length;
+            if (!userProfile.matches) userProfile.matches = [];
+            userProfile.matches = userProfile.matches.filter(m => cats.some(cat => cat.id === m.id && cat.liked === true));
+            cats.forEach(cat => {
+                const matchExists = userProfile.matches.some(m => m.id === cat.id);
+                if (cat.liked && matchExists) cat.matched = true;
+                else if (!cat.liked) cat.matched = false;
+            });
+        }
+
+        function saveData() {
+            userProfile.totalLikes = cats.filter(c => c.liked).length;
+            localStorage.setItem("cattinder_final_v2", JSON.stringify({
+                userProfile: userProfile,
+                cats: cats,
+                commentsByCat: commentsByCat
+            }));
+        }
+
+        function formatNumber(num) {
+            return num >= 1000 ? (num/1000).toFixed(1) + 'K' : num.toString();
+        }
+
+        function toggleLike(catId) {
+            const cat = cats.find(c => c.id === catId);
+            if (!cat) return { matched: false };
+            if (cat.liked) {
+                cat.liked = false;
+                cat.likes = Math.max(0, cat.likes - 1);
+                cat.matched = false;
+                userProfile.matches = userProfile.matches.filter(m => m.id !== catId);
+                saveData();
+                return { unliked: true };
+            } else {
+                cat.liked = true;
+                cat.likes++;
+                const makesMatch = Math.random() < 0.35;
+                if (makesMatch && !userProfile.matches.some(m => m.id === catId)) {
+                    cat.matched = true;
+                    userProfile.matches.push({ id: cat.id, name: cat.name, image: cat.image, date: new Date().toISOString() });
+                    saveData();
+                    return { matched: true, name: cat.name };
+                }
+                cat.matched = false;
+                saveData();
+                return { matched: false };
+            }
+        }
+
+        function addComment(catId, text) {
+            if (!text.trim()) return false;
+            if (!commentsByCat[catId]) commentsByCat[catId] = [];
+            commentsByCat[catId].push({ author: userProfile.username, text: text, date: new Date().toLocaleTimeString() });
+            saveData();
+            return true;
+        }
+
+        function renderAllCats() {
+            const wrapper = document.getElementById('catsWrapper');
+            wrapper.innerHTML = '';
+            cats.forEach((cat) => {
+                const hasMatch = userProfile.matches.some(m => m.id === cat.id);
+                const comments = commentsByCat[cat.id] || [];
+                wrapper.insertAdjacentHTML('beforeend', `
+                    <div class="card" data-cat-id="${cat.id}">
+                        <img class="card-img" src="${cat.image}" alt="${cat.name}">
+                        <div class="card-info"><div class="card-name">${cat.name}${cat.liked ? '<span class="liked-badge"><i class="fas fa-heart"></i> Likeado</span>' : ''}${hasMatch ? '<span class="match-badge"><i class="fas fa-star"></i> Match!</span>' : ''}</div><div class="card-bio">${cat.bio}</div></div>
+                        <div class="interaction-sidebar">
+                            <button class="interaction-btn like-btn ${cat.liked ? 'liked' : ''}" data-like-btn="${cat.id}"><i class="interaction-icon ${cat.liked ? 'fas fa-heart' : 'far fa-heart'}"></i><span class="interaction-count" id="like-count-${cat.id}">${formatNumber(cat.likes)}</span></button>
+                            <button class="interaction-btn" data-comment-scroll="${cat.id}"><i class="interaction-icon far fa-comment"></i><span class="interaction-count" id="comment-count-${cat.id}">${comments.length}</span></button>
+                        </div>
+                        <div class="action-buttons"><button class="action-btn btn-dislike" data-next-cat="${cat.id}"><i class="fas fa-times"></i> No</button><button class="action-btn btn-match" data-match-cat="${cat.id}"><i class="fas fa-paw"></i> Match</button></div>
+                        <div class="comments-section" id="comment-section-${cat.id}"><div class="comments-title"><i class="fas fa-comment-dots"></i> Comentarios</div><div class="comment-list" id="comments-list-${cat.id}">${comments.length === 0 ? '<div style="color:#9bbf9b; text-align:center; padding:8px;">Sin comentarios 💬</div>' : comments.map(c => `<div class="comment-item"><span class="comment-author">${escapeHtml(c.author)}:</span> ${escapeHtml(c.text)}<span style="font-size:0.6rem; color:#aaa; float:right;">${c.date}</span></div>`).join('')}</div><div class="comment-input-area"><input type="text" class="comment-input" id="comment-input-${cat.id}" placeholder="Escribe un comentario..."><button class="comment-submit" data-submit-comment="${cat.id}"><i class="fas fa-paper-plane"></i></button></div></div>
+                    </div>
+                `);
+            });
+            attachEvents();
+        }
+
+        function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
+
+        function attachEvents() {
+            document.querySelectorAll('[data-like-btn]').forEach(btn => btn.addEventListener('click', async (e) => { let id=parseFloat(btn.dataset.likeBtn), res=toggleLike(id), cat=cats.find(c=>c.id===id); document.getElementById(`like-count-${id}`).innerText=formatNumber(cat.likes); let icon=btn.querySelector('.interaction-icon'); if(cat.liked){ icon.className='interaction-icon fas fa-heart'; btn.classList.add('liked'); if(!document.querySelector(`.card[data-cat-id="${id}"] .liked-badge`)) document.querySelector(`.card[data-cat-id="${id}"] .card-name`).insertAdjacentHTML('beforeend','<span class="liked-badge"><i class="fas fa-heart"></i> Likeado</span>'); if(res.matched) alert(`🎉 ¡MATCH! A ${res.name} también le gustas 💕`); } else { icon.className='interaction-icon far fa-heart'; btn.classList.remove('liked'); document.querySelector(`.card[data-cat-id="${id}"] .liked-badge`)?.remove(); document.querySelector(`.card[data-cat-id="${id}"] .match-badge`)?.remove(); } saveData(); icon.style.animation='heartPop 0.35s'; setTimeout(()=>icon.style.animation='',400); }));
+            document.querySelectorAll('[data-comment-scroll]').forEach(btn => btn.addEventListener('click', (e) => { let id=parseFloat(btn.dataset.commentScroll); document.getElementById(`comment-section-${id}`)?.scrollIntoView({ behavior:'smooth', block:'center' }); }));
+            document.querySelectorAll('[data-next-cat]').forEach(btn => btn.addEventListener('click', (e) => { let id=parseFloat(btn.dataset.nextCat); let next=document.querySelector(`.card[data-cat-id="${id}"]`)?.nextElementSibling; if(next) next.scrollIntoView({ behavior:'smooth' }); else { let n=generateCats(3); cats.push(...n); renderAllCats(); saveData(); setTimeout(()=>document.querySelector(`.card[data-cat-id="${n[0].id}"]`)?.scrollIntoView({ behavior:'smooth' }),100); } }));
+            document.querySelectorAll('[data-match-cat]').forEach(btn => btn.addEventListener('click', (e) => { let id=parseFloat(btn.dataset.matchCat), cat=cats.find(c=>c.id===id); if(!cat.liked) alert('👍 Dale like primero'); else if(userProfile.matches.some(m=>m.id===id)) alert('💕 Ya tienen match'); else if(Math.random()<0.7){ cat.matched=true; userProfile.matches.push({id:cat.id,name:cat.name,image:cat.image}); saveData(); alert(`🎉 ¡MATCH con ${cat.name}!`); renderAllCats(); setTimeout(()=>document.querySelector(`.card[data-cat-id="${id}"]`)?.scrollIntoView({ behavior:'smooth' }),80); } else alert('😿 No hubo match'); }));
+            document.querySelectorAll('[data-submit-comment]').forEach(btn => btn.addEventListener('click', (e) => { let id=parseFloat(btn.dataset.submitComment), input=document.getElementById(`comment-input-${id}`), txt=input.value.trim(); if(txt){ addComment(id,txt); input.value=''; let comm=commentsByCat[id]||[]; document.getElementById(`comments-list-${id}`).innerHTML=comm.map(c=>`<div class="comment-item"><span class="comment-author">${escapeHtml(c.author)}:</span> ${escapeHtml(c.text)}<span style="font-size:0.6rem; color:#aaa; float:right;">${c.date}</span></div>`).join(''); document.getElementById(`comment-count-${id}`).innerText=comm.length; } }));
+        }
+
+        function updateProfileScreen() {
+            document.getElementById('profileName').innerText = userProfile.username;
+            document.getElementById('profileLikes').innerText = userProfile.totalLikes;
+            document.getElementById('profileMatches').innerText = userProfile.matches.length;
+            document.getElementById('profileBioText').innerHTML = userProfile.bio;
+            document.getElementById('profileEmailText').innerHTML = userProfile.email;
+            const matchesDiv = document.getElementById('matchesList');
+            if (!userProfile.matches.length) matchesDiv.innerHTML = '<div class="empty-state">Sin matches aún. ¡Da like a gatitos!</div>';
+            else matchesDiv.innerHTML = userProfile.matches.map(m => `<div class="match-card"><i class="fas fa-cat"></i><div><strong>${escapeHtml(m.name)}</strong></div></div>`).join('');
+        }
+
+        // NUEVA FUNCIÓN: Abrir modal de perfil de gato (al hacer clic en imagen de explorar)
+        function abrirPerfilGato(cat) {
+            document.getElementById('modalPerfilImg').src = cat.image;
+            document.getElementById('modalPerfilNombre').innerText = cat.name;
+            document.getElementById('modalPerfilRaza').innerHTML = `🐱 ${cat.raza}`;
+            document.getElementById('modalPerfilEdad').innerText = `${cat.edad} ${cat.edad === 1 ? 'año' : 'años'}`;
+            document.getElementById('modalPerfilPersonalidad').innerText = cat.personalidad;
+            document.getElementById('modalPerfilUbicacion').innerText = cat.ubicacion;
+            document.getElementById('modalPerfilGustos').innerText = cat.gustos;
+            document.getElementById('modalPerfilBio').innerText = cat.bio;
+            document.getElementById('modalPerfilLikes').innerText = formatNumber(cat.likes);
+            document.getElementById('modalPerfilGato').style.display = 'flex';
+        }
+
+        function cerrarModalPerfil() {
+            document.getElementById('modalPerfilGato').style.display = 'none';
+        }
+
+        // EXPLORAR INFINITO + "ver más fotos" + CLICK EN IMAGEN PARA VER PERFIL
+        let exploreOffset = 0;
+        const IMAGES_PER_BATCH = 12;
+        function getAllCatImages() { return cats.map(c => ({ image: c.image, name: c.name, catRef: c })); }
+        
+        function renderExploreBatch() { 
+            let all = getAllCatImages(); 
+            let toShow = all.slice(0, exploreOffset); 
+            let grid = document.getElementById('exploreGrid'); 
+            grid.innerHTML = toShow.map((item, idx) => `<div class="explore-item" data-explore-cat-index="${idx}"><img src="${item.image}" alt="${item.name}"></div>`).join(''); 
+            // Añadir event listeners a cada explore-item
+            document.querySelectorAll('.explore-item').forEach((el, i) => {
+                const catData = toShow[i];
+                if (catData) {
+                    el.addEventListener('click', () => abrirPerfilGato(catData.catRef));
+                }
+            });
+        }
+        
+        function loadMoreExplore() { 
+            let all = getAllCatImages(); 
+            if (exploreOffset >= all.length) { 
+                let newCatsBatch = generateCats(5); 
+                cats.push(...newCatsBatch); 
+                saveData(); 
+                exploreOffset = getAllCatImages().length; 
+                renderExploreBatch(); 
+            } else { 
+                exploreOffset = Math.min(exploreOffset + IMAGES_PER_BATCH, all.length); 
+                renderExploreBatch(); 
+            } 
+            if (exploreOffset >= getAllCatImages().length && getAllCatImages().length > 0) 
+                document.getElementById('loadMoreBtn').innerHTML = '<span>Más fotos</span> <i class="fas fa-chevron-right"></i>'; 
+            else 
+                document.getElementById('loadMoreBtn').innerHTML = '<span>Ver más fotos</span> <i class="fas fa-chevron-right"></i>'; 
+        }
+
+        function openScreen(screenId) { document.getElementById(screenId).classList.add('open'); }
+        window.closeScreen = function(screenId) { document.getElementById(screenId).classList.remove('open'); };
+        function openExploreWithRefresh() { exploreOffset = Math.min(24, getAllCatImages().length); renderExploreBatch(); openScreen('exploreScreen'); }
+
+        function initNavigation() {
+            document.querySelectorAll('.nav-item').forEach(btn => btn.addEventListener('click', () => { let scr = btn.dataset.screen; document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); if(scr==='home') document.getElementById('cardsContainer').scrollTo({top:0,behavior:'smooth'}); else if(scr==='profile'){ updateProfileScreen(); openScreen('profileScreen'); } else if(scr==='explore'){ exploreOffset = Math.min(24, getAllCatImages().length); renderExploreBatch(); openScreen('exploreScreen'); } }));
+            document.getElementById('loadMoreBtn').addEventListener('click', () => loadMoreExplore());
+        }
+
+        function init() { 
+            loadData(); 
+            renderAllCats(); 
+            initNavigation(); 
+            document.getElementById('editProfileBtn').addEventListener('click', ()=>{ document.getElementById('editName').value=userProfile.username; document.getElementById('editBio').value=userProfile.bio; document.getElementById('editEmail').value=userProfile.email; document.getElementById('editModal').style.display='flex'; }); 
+            document.getElementById('saveEditBtn').addEventListener('click', ()=>{ userProfile.username=document.getElementById('editName').value || "CatLover"; userProfile.bio=document.getElementById('editBio').value; userProfile.email=document.getElementById('editEmail').value; saveData(); updateProfileScreen(); document.getElementById('editModal').style.display='none'; renderAllCats(); }); 
+            document.getElementById('cancelEditBtn').addEventListener('click', ()=>document.getElementById('editModal').style.display='none'); 
+            // Añadir evento para cerrar modal al hacer clic fuera
+            document.getElementById('modalPerfilGato').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('modalPerfilGato')) cerrarModalPerfil();
+            });
+        }
+        init();
+    </script>
+</body>
+</html>
